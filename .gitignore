@@ -1,0 +1,17 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/i18n
+i18n.so
+i18n.dylib
+i18n.dll
+i18n.a
+i18n.lib
+i18n-test-*
+*.exe
+*.o
+*.obj
+*.lst
+
+dub.selections.json
