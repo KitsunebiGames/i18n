@@ -615,4 +615,20 @@ unittest {
     assert(i18nGetCultureCountry("ja_JP") == "Japan");
 }
 
-string i18nGetSystemLocale()
+/**
+    Gets the system's default locale
+*/
+string i18nGetSystemLocale() {
+    
+    // TODO: Implement
+    return "D";
+}
+
+/**
+    Gets the current locale set by the user
+*/
+string i18nGetUserLocale() {
+    
+    // TODO: Implement
+    return "D";
+}
