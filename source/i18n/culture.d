@@ -544,6 +544,8 @@ static this() {
 
     Returns true if the code is a valid culture code
     Returns false if the code is not a valid culture code
+
+    TODO: Validate whether encoding spec is correct
 */
 bool i18nValidateCultureCode(bool caseSensitive = true)(string code) {
         
@@ -552,8 +554,7 @@ bool i18nValidateCultureCode(bool caseSensitive = true)(string code) {
 
     // Make sure we don't crash when handling lang/country get
     // by escaping early if we have too few characters to work with
-    // While we're at it, if we have too many we'll skip too
-    if (code.length < 2 || code.length > 5) return false;
+    if (code.length < 2) return false;
 
     import std.uni : toUpper, toLower;
     import std.algorithm.searching : canFind;
@@ -567,7 +568,7 @@ bool i18nValidateCultureCode(bool caseSensitive = true)(string code) {
         static if (!caseSensitive) return _languageCodes.canFind(lang.toLower);
         else return _languageCodes.canFind(lang);
 
-    } else if (code.length == 5) {
+    } else if (code.length >= 5) {
         // Country AND language code
         
         // Make sure we either use a MS or gettext seperator
@@ -577,7 +578,8 @@ bool i18nValidateCultureCode(bool caseSensitive = true)(string code) {
         static if (!caseSensitive) return _languageCodes.canFind(lang.toLower) && _countryCodes.canFind(country.toUpper);
         else return _languageCodes.canFind(lang) && _countryCodes.canFind(country);
 
-    } else return false; // If neither of those code types are found then it's invalid
+    }
+    return false;
 }
 
 @("i18nValidateCultureCode Case Sensitive")
@@ -660,8 +662,7 @@ string i18nGetLocale() {
 
 @("i18nGetLocale")
 unittest {
-    import std.stdio : writeln;
-    writeln("GET=", i18nGetLocale());
+    assert(i18nValidateCultureCode(i18nGetLocale()));
 }
 
 /**
