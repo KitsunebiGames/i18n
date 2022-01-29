@@ -747,9 +747,3 @@ LocaleConv i18nGetLocaleConversions() {
         conv.int_n_sign_posn
     );
 }
-
-@("i18nGetLocaleConversions")
-unittest {
-    import std.stdio : writeln;
-    writeln();
-}
