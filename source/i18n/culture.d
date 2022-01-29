@@ -9,16 +9,40 @@ private {
     string[string] _languageNativeNames;
 
     string _getLangCode(string code) {
+        import std.uni : toLower;
+        import std.algorithm.searching : canFind;
 
+        // Impossible case
+        if (code.length < 2) return null;
+        
+        // C = no language set
+        if (code == "C") return code;
+
+        // Lang codes are always first, so check the 2 first code digits
+        string codecv = code[0..2].toLower();
+        if (_languageCodes.canFind(codecv)) return codecv;
+        return null;
     }
 
     string _getCountryCode(string code) {
         import std.string : indexOf;
+        import std.uni : toUpper;
+        import std.algorithm.searching : canFind;
 
+        // Maybe it's just a country code?
+        if (code.length == 2) {
+            if (_countryCodes.canFind(code.toUpper)) return null;
+
+            return code;
+        }
+        
         // Check for the 2 types of seperators
         ptrdiff_t sep = code.indexOf("_");
         if (sep == -1) sep = code.indexOf("-");
-        
+        if (sep == -1 && code.length == 2) return code;
+
+        // No seperators, no single-country code
+        return null;
     }
 }
 
@@ -510,6 +534,9 @@ static this() {
 
     // _languageNativeNames = [
     // ];
+
+    // Set to user preferred locale
+    i18nResetLocale();
 }
 
 /**
@@ -519,6 +546,10 @@ static this() {
     Returns false if the code is not a valid culture code
 */
 bool i18nValidateCultureCode(bool caseSensitive = true)(string code) {
+        
+    // Special case, C = no language set.
+    if (code == "C") return true;
+
     // Make sure we don't crash when handling lang/country get
     // by escaping early if we have too few characters to work with
     // While we're at it, if we have too many we'll skip too
@@ -527,7 +558,7 @@ bool i18nValidateCultureCode(bool caseSensitive = true)(string code) {
     import std.uni : toUpper, toLower;
     import std.algorithm.searching : canFind;
     string lang = code[0..2];
-    string country = code.length == 5 ? code[3..5] : "";
+    string country = code.length >= 5 ? code[3..5] : "";
 
     if (code.length == 2) {
         // Language code only
@@ -601,9 +632,9 @@ unittest {
 */
 string i18nGetCultureCountry(string code) {
     if (!i18nValidateCultureCode(code)) return null;
-    if (code.length != 5) return null;
-    if (code[$-2..$] !in _countryNames) return null;
-    return _countryNames[code[$-2..$]];
+    if (code.length < 5) return null;
+    if (code[$-2..5] !in _countryNames) return null;
+    return _countryNames[code[5-2..5]];
 }
 
 @("i18nGetCultureCountry")
@@ -616,19 +647,108 @@ unittest {
 }
 
 /**
-    Gets the system's default locale
+    Gets the current locale.
 */
-string i18nGetSystemLocale() {
+string i18nGetLocale() {
+    import core.stdc.locale : setlocale, LC_ALL;
+    import std.string : fromStringz;
+    string locale = cast(string)setlocale(LC_ALL, null).fromStringz.idup;
     
     // TODO: Implement
-    return "D";
+    return locale;
+}
+
+@("i18nGetLocale")
+unittest {
+    import std.stdio : writeln;
+    writeln("GET=", i18nGetLocale());
 }
 
 /**
-    Gets the current locale set by the user
+    Sets the locale for the app.
 */
-string i18nGetUserLocale() {
-    
-    // TODO: Implement
-    return "D";
+void i18nSetLocale(string locale) {
+    import core.stdc.locale : setlocale, LC_ALL;
+    import core.stdc.string : memcpy;
+    import core.stdc.stdlib : malloc;
+    import std.string : toStringz, fromStringz;
+
+    if (locale == "C") {
+        setlocale(LC_ALL, "C");
+    } else if (locale == "") {
+        setlocale(LC_ALL, "");
+    } else setlocale(LC_ALL, (locale).toStringz);
+}
+
+void i18nResetLocale() {
+    import core.stdc.locale : setlocale, LC_ALL;
+    setlocale(LC_ALL, "");
+}
+
+struct LocaleConv {
+    string decimalPoint;
+    string thousandSep;
+    string grouping;
+    string intCurrSymbol;
+    string currencySymbol;
+    string monDecimalPoint;
+    string monThousandsSep;
+    string monGrouping;
+    string positiveSign;
+    string negativeSign;
+    byte intFracDigits;
+    byte fracDigits;
+    byte pCSPrecedes;
+    byte pSepBySpace;
+    byte nCSPrecedes;
+    byte nSepBySpace;
+    byte pSignPosN;
+    byte nSignPosN;
+    byte intPCSPrecedes;
+    byte intP_sep_by_space;
+    byte intNCSPrecedes;
+    byte intNSepBySpace;
+    byte intPSignPosN;
+    byte intNSignPosN;
+}
+
+/**
+    Returns the locale's conversion units.
+*/
+LocaleConv i18nGetLocaleConversions() {
+    import core.stdc.locale : localeconv, lconv;
+    import std.string : fromStringz;
+    lconv* conv = localeconv();
+    return LocaleConv(
+        cast(string)conv.decimal_point.fromStringz,
+        cast(string)conv.thousands_sep.fromStringz,
+        cast(string)conv.grouping.fromStringz,
+        cast(string)conv.int_curr_symbol.fromStringz,
+        cast(string)conv.currency_symbol.fromStringz,
+        cast(string)conv.mon_decimal_point.fromStringz,
+        cast(string)conv.mon_thousands_sep.fromStringz,
+        cast(string)conv.mon_grouping.fromStringz,
+        cast(string)conv.positive_sign.fromStringz,
+        cast(string)conv.negative_sign.fromStringz,
+        conv.int_frac_digits,
+        conv.frac_digits,
+        conv.p_cs_precedes,
+        conv.p_sep_by_space,
+        conv.n_cs_precedes,
+        conv.n_sep_by_space,
+        conv.p_sign_posn,
+        conv.n_sign_posn,
+        conv.int_p_cs_precedes,
+        conv.int_p_sep_by_space,
+        conv.int_n_cs_precedes,
+        conv.int_n_sep_by_space,
+        conv.int_p_sign_posn,
+        conv.int_n_sign_posn
+    );
+}
+
+@("i18nGetLocaleConversions")
+unittest {
+    import std.stdio : writeln;
+    writeln();
 }
