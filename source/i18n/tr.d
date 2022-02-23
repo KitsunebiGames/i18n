@@ -10,6 +10,7 @@ package(i18n) {
     struct TREntry {
         string source;
         string[] targets;
+        const(char)*[] cTargets;
     }
 }
 
@@ -42,6 +43,9 @@ bool i18nLoadLanguage(string file) {
     }
 }
 
+/**
+    Returns D string translation of iText
+*/
 string _(string iText) {
     
     // If in lookup table, return from lookup table
@@ -54,5 +58,24 @@ string _(string iText) {
             return i18nMOStr(iText);
         default:
             return iText;
+    }
+}
+
+/**
+    Returns C string translation of iText
+*/
+const(char)* __(string iText) {
+    import std.string : toStringz;
+    
+    // If in lookup table, return from lookup table
+    if (iText in lookuptable) 
+        return lookuptable[iText].cTargets[0];
+
+    // Otherwise try just in case from file.
+    switch(currentFormat) {
+        case TLFormats.gettext:
+            return i18nMOStrC(iText);
+        default:
+            return iText.toStringz;
     }
 }

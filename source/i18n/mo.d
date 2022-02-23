@@ -83,14 +83,30 @@ string i18nMOStr(string str) {
     return str;
 }
 
+const(char)* i18nMOStrC(string str) {
+    import std.string : toStringz;
+
+    // No data was found
+    if (!mo_init || !mo_data) return str.toStringz;
+
+    foreach(i; 0..mo.header.count) {
+        if (str == cast(string)mo_data[mo.sources[i].offset..endian(mo.sources[i].offset)+endian(mo.sources[i].length)]) {
+            return cast(const(char)*)&mo_data[mo.targets[i].offset];
+        }
+    }
+
+    return str.toStringz;
+}
+
 TREntry[string] i18nMOGenStrings() {
+    import std.string : toStringz;
     TREntry[string] entries;
     // TODO: implement pluralization
     foreach(i; 0..mo.header.count) {
         string source = cast(string)mo_data[mo.sources[i].offset..endian(mo.sources[i].offset)+endian(mo.sources[i].length)];
         string target0 = cast(string)mo_data[mo.targets[i].offset..endian(mo.targets[i].offset)+endian(mo.targets[i].length)];
-        entries[source] = TREntry(source, [target0]);
+        entries[source] = TREntry(source, [target0], [target0.toStringz]);
     }
-    
+
     return entries;
 }
