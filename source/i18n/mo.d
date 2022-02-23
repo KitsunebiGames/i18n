@@ -76,6 +76,11 @@ string i18nMOStr(string str) {
 
     foreach(i; 0..mo.header.count) {
         if (str == cast(string)mo_data[mo.sources[i].offset..endian(mo.sources[i].offset)+endian(mo.sources[i].length)]) {
+            
+            // Empty translation? return base string.
+            if (mo.targets[i].length == 0) return str;
+
+            // Return the correct translation (pluralization 0)
             return cast(string)mo_data[mo.targets[i].offset..endian(mo.targets[i].offset)+endian(mo.targets[i].length)];
         }
     }
@@ -91,6 +96,11 @@ const(char)* i18nMOStrC(string str) {
 
     foreach(i; 0..mo.header.count) {
         if (str == cast(string)mo_data[mo.sources[i].offset..endian(mo.sources[i].offset)+endian(mo.sources[i].length)]) {
+            
+            // Empty translation? return base string.
+            if (mo.targets[i].length == 0) return str.toStringz;
+
+            // Return the correct translation (pluralization 0)
             return cast(const(char)*)&mo_data[mo.targets[i].offset];
         }
     }
@@ -101,8 +111,14 @@ const(char)* i18nMOStrC(string str) {
 TREntry[string] i18nMOGenStrings() {
     import std.string : toStringz;
     TREntry[string] entries;
-    // TODO: implement pluralization
+    
     foreach(i; 0..mo.header.count) {
+
+        // Skip untranslated entries
+        if (mo.targets[i].length == 0) continue;
+
+        // Add translation to translation table
+        // TODO: Add pluralizations
         string source = cast(string)mo_data[mo.sources[i].offset..endian(mo.sources[i].offset)+endian(mo.sources[i].length)];
         string target0 = cast(string)mo_data[mo.targets[i].offset..endian(mo.targets[i].offset)+endian(mo.targets[i].length)];
         entries[source] = TREntry(source, [target0], [target0.toStringz]);
