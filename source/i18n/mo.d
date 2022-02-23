@@ -2,8 +2,11 @@
     gettext .mo support
 */
 module i18n.mo;
+import i18n.tr;
 import std.format;
 import std.exception;
+import std.string : fromStringz;
+import std.bitmanip : swapEndian;
 
 private:
 struct MOEntry {
@@ -17,27 +20,27 @@ align(1):
     uint magic;
     uint revision;
     uint count;
-    MOEntry* source;
-    MOEntry* target;
+    uint sourceOffset;
+    uint targetOffset;
     uint hashSize;
     void* hashes;
+}
+
+struct MOFile {
+    MOHeader header;
+    MOEntry* sources;
+    MOEntry* targets;
 }
 
 enum MAGIC_SWAB = 0xde120495;
 enum MAGIC = 0x950412de;
 
 pragma(inline, true)
-uint swab16(uint x) { return ((((x)>>8)&0xFF) | (((x)&0xFF)<<8)); }
-
-pragma(inline, true)
-uint swab32(uint x) { return ((swab16((x)&0xFFFF)<<16)|(swab16(((x)>>16)&0xFFFF))); }
-
-pragma(inline, true)
-uint endian(uint x) { return ((mo.magic == MAGIC_SWAB) ? swab32(x) : (x)); }
+uint endian(uint x) { return ((mo.header.magic == MAGIC_SWAB) ? swapEndian(x) : (x)); }
 
 bool mo_init = false;
 ubyte[] mo_data;
-MOHeader mo;
+MOFile mo;
 
 public:
 
@@ -48,22 +51,22 @@ void i18nMOLoad(ubyte[] data) {
         return;
     }
 
-    (cast(void*)&mo)[0..MOHeader.sizeof] = data[0..MOHeader.sizeof];
-    if (mo.magic == MAGIC_SWAB) {
-        mo.revision = swab32(mo.revision);
-        mo.count = swab32(mo.count);
-        mo.source = cast(MOEntry*)swab32(cast(uint)mo.source);
-        mo.target = cast(MOEntry*)swab32(cast(uint)mo.target);
-        mo.hashSize = swab32(mo.hashSize);
-        mo.hashes = cast(void*)swab32(cast(uint)mo.magic);
+    (cast(void*)&mo.header)[0..MOHeader.sizeof] = data[0..MOHeader.sizeof];
+    if (mo.header.magic == MAGIC_SWAB) {
+        mo.header.revision = swapEndian(mo.header.revision);
+        mo.header.count = swapEndian(mo.header.count);
+        mo.header.sourceOffset = swapEndian(mo.header.sourceOffset);
+        mo.header.targetOffset = swapEndian(mo.header.targetOffset);
+        mo.header.hashSize = swapEndian(mo.header.hashSize);
+        mo.header.hashes = cast(void*)swapEndian(cast(size_t)mo.header.magic);
     }
 
-    enforce(mo.magic == MAGIC, "Bad mo file magic 0x%08x".format(mo.magic));
-    enforce(mo.revision == 0, "Bad mo file revision 0x%08x".format(mo.revision));
+    enforce(mo.header.magic == MAGIC, "Bad mo file magic 0x%08x".format(mo.header.magic));
+    enforce(mo.header.revision == 0, "Bad mo file revision 0x%08x".format(mo.header.revision));
 
     mo_data = data;
-    mo.source = cast(MOEntry*)(mo_data.ptr + cast(uint)mo.source);
-    mo.target = cast(MOEntry*)(mo_data.ptr + cast(uint)mo.target);
+    mo.sources = cast(MOEntry*)(mo_data.ptr+mo.header.sourceOffset);
+    mo.targets = cast(MOEntry*)(mo_data.ptr+mo.header.targetOffset);
 }
 
 string i18nMOStr(string str) {
@@ -71,10 +74,23 @@ string i18nMOStr(string str) {
     // No data was found
     if (!mo_init || !mo_data) return str;
 
-    foreach(i; 0..mo.count) {
-        if (str == cast(string)mo_data[endian(mo.source[i].offset)..endian(mo.source[i].length)])
-            return cast(string)mo_data[endian(mo.target[i].offset)..endian(mo.target[i].length)];
+    foreach(i; 0..mo.header.count) {
+        if (str == cast(string)mo_data[mo.sources[i].offset..endian(mo.sources[i].offset)+endian(mo.sources[i].length)]) {
+            return cast(string)mo_data[mo.targets[i].offset..endian(mo.targets[i].offset)+endian(mo.targets[i].length)];
+        }
     }
 
     return str;
+}
+
+TREntry[string] i18nMOGenStrings() {
+    TREntry[string] entries;
+    // TODO: implement pluralization
+    foreach(i; 0..mo.header.count) {
+        string source = cast(string)mo_data[mo.sources[i].offset..endian(mo.sources[i].offset)+endian(mo.sources[i].length)];
+        string target0 = cast(string)mo_data[mo.targets[i].offset..endian(mo.targets[i].offset)+endian(mo.targets[i].length)];
+        entries[source] = TREntry(source, [target0]);
+    }
+    
+    return entries;
 }
