@@ -13,6 +13,7 @@ align(1):
 }
 
 struct MOHeader {
+align(1):
     uint magic;
     uint revision;
     uint count;
