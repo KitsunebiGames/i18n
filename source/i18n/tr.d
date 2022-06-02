@@ -24,6 +24,17 @@ private {
     TREntry[string] lookuptable;
 }
 
+/**
+    Clears currently loaded language
+*/
+void i18nClearLanguage() {
+    lookuptable.clear();
+    i18nMOLoad(null);
+}
+
+/**
+    Loads a language
+*/
 bool i18nLoadLanguage(string file) {
     lookuptable.clear();
 

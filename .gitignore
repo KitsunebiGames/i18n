@@ -13,5 +13,6 @@ i18n-test-*
 *.o
 *.obj
 *.lst
+*.a
 
 dub.selections.json
