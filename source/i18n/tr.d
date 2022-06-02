@@ -36,8 +36,15 @@ void i18nClearLanguage() {
     Loads a language
 */
 bool i18nLoadLanguage(string file) {
-    lookuptable.clear();
 
+    // Empty path/null = unload
+    if (file.length == 0) {
+        i18nClearLanguage();
+        return true;
+    }
+
+    // Actually load
+    lookuptable.clear();
     switch(file.extension.toLower) {
         case ".mo":
             try {
