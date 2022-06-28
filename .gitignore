@@ -16,3 +16,4 @@ i18n-test-*
 *.a
 
 dub.selections.json
+out/
