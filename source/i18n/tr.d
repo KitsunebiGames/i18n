@@ -15,6 +15,8 @@ package(i18n) {
 }
 
 private {
+    MOFile* loadedLanguage;
+
     enum TLFormats {
         none,
         gettext
@@ -25,11 +27,37 @@ private {
 }
 
 /**
+    Gets the name of the language
+*/
+string i18nGetLanguageName(string file) {
+    import std.path : baseName, stripExtension;
+
+    // Load language file
+    auto f = i18nMOLoad(cast(ubyte[])read(file));
+
+    // Try to read language from LANG_NAME strid
+    string langName = f.i18nMOStr("LANG_NAME").dup;
+    destroy!false(f);
+
+    // Not found? Then get (inaccurate) fallback name from internal list
+    if (langName == "LANG_NAME") langName = i18nGetCultureNativeLanguageEstimate(file.baseName.stripExtension);
+
+    // Not found? Then get fallback from english name list
+    if (langName == "LANG_NAME") langName = i18nGetCultureLanguage(file.baseName.stripExtension);
+
+    // Not found? Okay we give up, throw some text to know we don't know what the heck to do
+    if (!langName) return "<UNKNOWN LANGUAGE>";
+
+    // Return whatever we got
+    return langName;
+}
+
+/**
     Clears currently loaded language
 */
 void i18nClearLanguage() {
     lookuptable.clear();
-    i18nMOLoad(null);
+    loadedLanguage = null;
 }
 
 /**
@@ -48,9 +76,9 @@ bool i18nLoadLanguage(string file) {
     switch(file.extension.toLower) {
         case ".mo":
             try {
-                i18nMOLoad(cast(ubyte[])read(file));
+                loadedLanguage = i18nMOLoad(cast(ubyte[])read(file));
 
-                lookuptable = i18nMOGenStrings();
+                lookuptable = i18nMOGenStrings(loadedLanguage);
                 currentFormat = TLFormats.gettext;
             } catch (Exception ex) {
                 return false;
@@ -73,7 +101,8 @@ string _(string iText) {
     // Otherwise try just in case from file.
     switch(currentFormat) {
         case TLFormats.gettext:
-            return i18nMOStr(iText);
+            if (loadedLanguage) return loadedLanguage.i18nMOStr(iText);
+            return iText;
         default:
             return iText;
     }
@@ -92,7 +121,8 @@ const(char)* __(string iText) {
     // Otherwise try just in case from file.
     switch(currentFormat) {
         case TLFormats.gettext:
-            return i18nMOStrC(iText);
+            if (loadedLanguage) return loadedLanguage.i18nMOStrC(iText);
+            return iText.toStringz;
         default:
             return iText.toStringz;
     }

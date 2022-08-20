@@ -532,8 +532,196 @@ static this() {
         "zu": "Zulu"
     ];
 
-    // _languageNativeNames = [
-    // ];
+    /*
+        Estimated language names for fallback
+        This list is inaccurate and incomplete.
+    */
+    _languageNativeNames = [
+        "aa": "Qafaraf",
+        "ab": "Аҧсуа бызшәа",
+        "ae": "𐬛𐬍𐬥 𐬛𐬀𐬠𐬌𐬫𐬭𐬵",
+        "af": "Afrikaans", // No spelling found
+        "ak": "Akan", // No spelling found
+        "am": "ኣማርኛ",
+        "an": "Aragonés",
+        "ar": "عربية يهودية",
+        "as": "অসমীয়া",
+        "av": "Avaric",
+        "ay": "Aymar aru",
+        "az": "Azərbaycan dili",
+        "ba": "Башҡортса",
+        "be": "Беларуская мова",
+        "bg": "Български",
+        "bh": "Bihari",
+        "bi": "Bislama",
+        "bm": "Bamanankan",
+        "bn": "বাংলা",
+        "bo": "ཁམས་སྐད",
+        "br": "Brezhoneg",
+        "bs": "Bosanski",
+        "ca": "Catlan",
+        "ce": "Нохчийн мотт",
+        "ch": "Finuʼ Chamoru",
+        "co": "Corsu",
+        "cr": "Cree", // There's 4 versions of Cree, need to add a way to differentate between versions
+        "cs": "Čeština",
+        "cu": "Church Slavic",
+        "cv": "Чӑвашла",
+        "cy": "Cymraeg",
+        "da": "Dansk",
+        "de": "Deutsch",
+        "dv": "Divehi", // No spelling found
+        "dz": "རྫོང་ཁ་",
+        "ee": "Eʋegbe",
+        "el": "ελληνικά",
+        "en": "English",
+        "eo": "Esperanto",
+        "es": "Español",
+        "et": "Eesti keel",
+        "eu": "Euskara",
+        "fa": "فارسی",
+        "ff": "Fulah", // No spelling found
+        "fi": "Suomi",
+        "fj": "Na vosa vaka-Viti",
+        "fo": "Føroyskt mál",
+        "fr": "Français",
+        "fy": "Frysk",
+        "ga": "Gaeilge",
+        "gd": "Gàidhlig",
+        "gl": "Galacian", // No spelling found
+        "gn": "Avañeʼẽ",
+        "gu": "ગુજરાતી",
+        "gv": "Gaelg",
+        "ha": "هَرْشَن هَوْسَ",
+        "he": "עברית",
+        "hi": "हिन्दी ",
+        "ho": "Hiri Motu", // Is spelled same?
+        "hr": "Hrvatski",
+        "ht": "Kreyòl ayisyen",
+        "hu": "Magyar",
+        "hy": "Հայերէն",
+        "hz": "Otjiherero",
+        "ia": "Interlingua",
+        "id": "Bahasa Indonesia",
+        "ie": "Interlingue",
+        "ig": "Ásụ̀sụ̀ Ìgbò",
+        "ii": "ꆈꌠ꒿", // Not sure whether Nuosuhxop is correct.
+        "ik": "Inupiak",
+        "io": "Ido",
+        "is": "Íslenska",
+        "it": "Italiano",
+        "iu": "ᐃᓄᒃᑎᑐᑦ",
+        "ja": "日本語",
+        "jv": "Basa Jawa",
+        "ka": "ქართული ენა",
+        "kg": "Kikongo",
+        "ki": "Gĩkũyũ",
+        "kj": "Kuanyama",
+        "kk": "Қазақ тілі",
+        "kl": "Kalaallisut",
+        "km": "ភាសាខ្មែរ ",
+        "kn": "ಕನ್ನಡ",
+        "ko": "한국어",
+        "kr": "Kànùrí",
+        "ks": "कॉशुर", // Used first option, is this correct?
+        "ku": "کوردی", // کوردی is one spelling of 3 depending on region, need way to differentiate
+        "kv": "Коми кыв",
+        "kw": "Kernewek",
+        "ky": "Kirghiz",
+        "la": "Lingua Latina",
+        "lb": "Lëtzebuergesch",
+        "lg": "Oluganda",
+        "li": "Limburgs",
+        "ln": "Lingala",
+        "lo": "ພາສາລາວ",
+        "lt": "Lietuvių kalba",
+        "lu": "Luba-Katanga", // No spelling found
+        "lv": "Latviešu valoda",
+        "mg": "Malagasy",
+        "mh": "Kajin M̧ajeļ", // One option of 2 was chosen
+        "mi": "Māori",
+        "mk": "македонски",
+        "ml": "മലയാളം",
+        "mn": "монгол",
+        "mr": "मराठी",
+        "ms": "Bahasa Melayu",
+        "mt": "Malti",
+        "my": "မြန်မာဘာသာ",
+        "na": "Nauru",
+        "nb": "Bokmål",
+        "nd": "isiNdebele", // one of multiple options based on where in africa, chose one which seems to have the most speakers.
+        "ne": "नेपाली",
+        "ng": "Ndonga",
+        "nl": "Nederlands",
+        "nn": "Nynorsk",
+        "no": "Norsk",
+        "nr": "isiNdebele",
+        "nv": "Diné Bizaad",
+        "ny": "Chicheŵa",
+        "oc": "Occitan", // There's multiple options, sticking with the base one
+        "oj": "Ojibwa", // No spelling found
+        "om": "Omoro", // No spelling found
+        "or": "Oriya", // No spelling found
+        "os": "ирон ӕвзаг",
+        "pa": "ਪੰਜਾਬੀ",
+        "pi": "पालि",
+        "pl": "Polski",
+        "ps": "Pushto", // No spelling found
+        "pt": "Português",
+        "qu": "Kechua",
+        "rm": "Rumantsch",
+        "rn": "íkiRǔndi",
+        "ro": "Vlășéște ",
+        "ru": "Русский язык",
+        "rw": "Ikinyarwanda",
+        "sa": "संस्कृत", // Multiple options, chose first one
+        "sc": "Sardu",
+        "sd": "سنڌي", // Spoken in multiple places with their own local spelling.
+        "se": "Davvisámegiella",
+        "sg": "Yângâ tî sängö",
+        "si": "සිංහල",
+        "sk": "Slovenčina",
+        "sl": "Slovenščina",
+        "sm": "Gagana fa‘a Sāmoa",
+        "sn": "chiShona",
+        "so": "af Soomaali",
+        "sq": "Shqip",
+        "sr": "српски",
+        "ss": "siSwati",
+        "st": "seSotho",
+        "su": "Basa Sunda",
+        "sv": "Svenska",
+        "sw": "Kiswahili ",
+        "ta": "தமிழ்",
+        "te": "Tegulu", // No spelling found
+        "tg": "тоҷикӣ",
+        "th": "ภาษาไทย",
+        "ti": "ትግርኛ",
+        "tk": "Türkmen dili",
+        "tl": "Tagalog", // Is same
+        "tn": "Setswana",
+        "to": "Chitonga",
+        "tr": "Türkçe",
+        "ts": "Xitsonga",
+        "tt": "Tatarça",
+        "tw": "Twi", // Is same
+        "ty": "Reo Tahiti",
+        "ug": "ئۇيغۇر", // Found via Wikipedia
+        "uk": "украї́нська мо́ва",
+        "ur": "اُردُو",
+        "uz": "Ўзбек тили",
+        "ve": "Tshivenḓa", // 2 options, chose first one
+        "vi": "Tiếng Việt",
+        "vo": "Volapük",
+        "wa": "Walon",
+        "wo": "Wolof", // Is same ?
+        "xh": "isiXhosa",
+        "yi": "ייִדיש",
+        "yo": "Èdè Yorùbá",
+        "za": "Vahcuengh",
+        "zh": "中文", // There's incredibly many forms of chinese, this doesn't cover them all
+        "zu": "isiZulu"
+    ];
 
     // Set to user preferred locale
     i18nResetLocale();
@@ -627,6 +815,28 @@ unittest {
     assert(i18nGetCultureLanguage("de") == "German");
     assert(i18nGetCultureLanguage("en") == "English");
     assert(i18nGetCultureLanguage("ja") == "Japanese");
+}
+
+/**
+    Attempts to get the name of the language associated with a culture code.
+    This may be inaccurate due to things such as multiple versions of a language existing.
+
+    ONLY USE THIS AS A FALLBACK.
+
+    Returns null if code is invalid
+*/
+string i18nGetCultureNativeLanguageEstimate(string code) {
+    if (!i18nValidateCultureCode(code)) return null;
+    if (code[0..2] !in _languageNativeNames) return null;
+    return _languageNativeNames[code[0..2]];
+}
+
+@("i18nGetCultureNativeLanguageEstimate")
+unittest {
+    assert(i18nGetCultureLanguage("da") == "Dansk");
+    assert(i18nGetCultureLanguage("de") == "Deutsch");
+    assert(i18nGetCultureLanguage("en") == "English");
+    assert(i18nGetCultureLanguage("ja") == "日本語");
 }
 
 /**

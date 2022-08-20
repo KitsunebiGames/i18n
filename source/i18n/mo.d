@@ -26,30 +26,32 @@ align(1):
     void* hashes;
 }
 
+enum MAGIC_SWAB = 0xde120495;
+enum MAGIC = 0x950412de;
+
+pragma(inline, true)
+uint endian(MOFile* f, uint x) { return ((f.header.magic == MAGIC_SWAB) ? swapEndian(x) : (x)); }
+
+// bool mo_init = false;
+// ubyte[] mo_data;
+// MOFile mo;
+
+public:
+
 struct MOFile {
+private:
+    ubyte[] data;
+
     MOHeader header;
     MOEntry* sources;
     MOEntry* targets;
 }
 
-enum MAGIC_SWAB = 0xde120495;
-enum MAGIC = 0x950412de;
+MOFile* i18nMOLoad(ubyte[] data) {
+    if (data.length == 0) return null;
 
-pragma(inline, true)
-uint endian(uint x) { return ((mo.header.magic == MAGIC_SWAB) ? swapEndian(x) : (x)); }
-
-bool mo_init = false;
-ubyte[] mo_data;
-MOFile mo;
-
-public:
-
-void i18nMOLoad(ubyte[] data) {
-    mo_init = true;
-    if (!data) {
-        mo_data = null;
-        return;
-    }
+    MOFile* mo = new MOFile;
+    mo.data = data;
 
     (cast(void*)&mo.header)[0..MOHeader.sizeof] = data[0..MOHeader.sizeof];
     if (mo.header.magic == MAGIC_SWAB) {
@@ -64,51 +66,52 @@ void i18nMOLoad(ubyte[] data) {
     enforce(mo.header.magic == MAGIC, "Bad mo file magic 0x%08x".format(mo.header.magic));
     enforce(mo.header.revision == 0, "Bad mo file revision 0x%08x".format(mo.header.revision));
 
-    mo_data = data;
-    mo.sources = cast(MOEntry*)(mo_data.ptr+mo.header.sourceOffset);
-    mo.targets = cast(MOEntry*)(mo_data.ptr+mo.header.targetOffset);
+    mo.sources = cast(MOEntry*)(mo.data.ptr+mo.header.sourceOffset);
+    mo.targets = cast(MOEntry*)(mo.data.ptr+mo.header.targetOffset);
+
+    return mo;
 }
 
-string i18nMOStr(string str) {
+string i18nMOStr(MOFile* mo, string str) {
 
     // No data was found
-    if (!mo_init || !mo_data) return str;
+    if (!mo.data) return str;
 
     foreach(i; 0..mo.header.count) {
-        if (str == cast(string)mo_data[mo.sources[i].offset..endian(mo.sources[i].offset)+endian(mo.sources[i].length)]) {
+        if (str == cast(string)mo.data[mo.sources[i].offset..mo.endian(mo.sources[i].offset)+mo.endian(mo.sources[i].length)]) {
             
             // Empty translation? return base string.
             if (mo.targets[i].length == 0) return str;
 
             // Return the correct translation (pluralization 0)
-            return cast(string)mo_data[mo.targets[i].offset..endian(mo.targets[i].offset)+endian(mo.targets[i].length)];
+            return cast(string)mo.data[mo.targets[i].offset..mo.endian(mo.targets[i].offset)+mo.endian(mo.targets[i].length)];
         }
     }
 
     return str;
 }
 
-const(char)* i18nMOStrC(string str) {
+const(char)* i18nMOStrC(MOFile* mo, string str) {
     import std.string : toStringz;
 
     // No data was found
-    if (!mo_init || !mo_data) return str.toStringz;
+    if (!mo.data) return str.toStringz;
 
     foreach(i; 0..mo.header.count) {
-        if (str == cast(string)mo_data[mo.sources[i].offset..endian(mo.sources[i].offset)+endian(mo.sources[i].length)]) {
+        if (str == cast(string)mo.data[mo.sources[i].offset..mo.endian(mo.sources[i].offset)+mo.endian(mo.sources[i].length)]) {
             
             // Empty translation? return base string.
             if (mo.targets[i].length == 0) return str.toStringz;
 
             // Return the correct translation (pluralization 0)
-            return cast(const(char)*)&mo_data[mo.targets[i].offset];
+            return cast(const(char)*)&mo.data[mo.targets[i].offset];
         }
     }
 
     return str.toStringz;
 }
 
-TREntry[string] i18nMOGenStrings() {
+TREntry[string] i18nMOGenStrings(MOFile* mo) {
     import std.string : toStringz;
     TREntry[string] entries;
     
@@ -119,8 +122,8 @@ TREntry[string] i18nMOGenStrings() {
 
         // Add translation to translation table
         // TODO: Add pluralizations
-        string source = cast(string)mo_data[mo.sources[i].offset..endian(mo.sources[i].offset)+endian(mo.sources[i].length)];
-        string target0 = cast(string)mo_data[mo.targets[i].offset..endian(mo.targets[i].offset)+endian(mo.targets[i].length)];
+        string source = cast(string)mo.data[mo.sources[i].offset..mo.endian(mo.sources[i].offset)+mo.endian(mo.sources[i].length)];
+        string target0 = cast(string)mo.data[mo.targets[i].offset..mo.endian(mo.targets[i].offset)+mo.endian(mo.targets[i].length)];
         entries[source] = TREntry(source, [target0], [target0.toStringz]);
     }
 
